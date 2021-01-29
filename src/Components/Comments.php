@@ -42,8 +42,12 @@ class Comments extends Control
     /* Replace $presenter->redirect() with $presenter->postGet() ... */
     $this->getPresenter()->postGet('this');
 
-    /* ... and redraw the appropriate snippets. */
-    $this->redrawControl('list');
+    /* There's no need to redraw the component anymore
+      as the comment has already been removed on the client-side
+      by Nittro. Since the component was a signal receiver though,
+      it would be redrawn automatically by Nette anyway, so we need
+      to stop that: */
+    $this->redrawControl(null, false);
   }
 
   public function render() : void
@@ -56,13 +60,18 @@ class Comments extends Control
 
   public function addComment(CommentForm $form, array $values) : void
   {
-    $this->model->addComment($this->postId, $values);
+    $comment = $this->model->addComment($this->postId, $values);
 
     $this->flashMessage('Comment added.', 'success');
 
     /* Same as above. */
     $this->getPresenter()->postGet('this');
     $this->redrawControl('list');
+
+    /* This will make the component render only the newly added comment.
+       Check out the getComments() method - it only loads comments from
+       the model if they haven't been previously set elsewhere. */
+    $this->comments = [ $comment ];
   }
 
 
